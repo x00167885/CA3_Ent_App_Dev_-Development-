@@ -7,7 +7,9 @@
 @inject IHttpClientFactory _httpClientFactory
 @inject IJSRuntime JS  /* Using Javascript */
 
-<h3 class="text-center">Liked Photos</h3>
+<PageTitle>Liked Photos</PageTitle>
+
+<h2 class="text-center">Liked Photos</h2>
 
 @if (LikePhotoService.LikedPhotos.Count != 0)
 {
@@ -29,7 +31,7 @@
 }
 else
 {
-    <h3 class="text-center mt-6">NO PHOTOS ADDED YET</h3>
+    <h2 class="text-center my-5">NO PHOTOS LIKED YET</h2>
 }
 
 @code {

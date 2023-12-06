@@ -30,11 +30,11 @@
 {
     if (searched)
     {
-        <h1 class="text-center">You searched for: @searchQuery</h1>
+        <h2 class="text-center my-4">You searched for: @searchQuery</h2>
     }
     else
     {
-        <h1 class="text-center">Showing Weather Images:</h1>
+        <h2 class="text-center my-4">Showing Weather Images</h2>
     }
 
     <Container>
@@ -63,7 +63,7 @@
     {
         // Generating a random page number to simluate randomness.
         Random random = new();
-        int RandomPageNumber = random.Next(1, 11);
+        int RandomPageNumber = random.Next(1, 101);
 
         var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
         photos = result.photos;
@@ -78,7 +78,7 @@
 
         // Generating a random page number to simluate randomness.
         Random random = new();
-        int RandomPageNumber = random.Next(1, 11);
+        int RandomPageNumber = random.Next(1, 101);
 
         if (searchQuery != "")
         {

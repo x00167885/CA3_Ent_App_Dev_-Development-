@@ -4,8 +4,6 @@ html, body {
     font-family: 'Montserrat', sans-serif;
 }
 
-
-
 h1:focus {
     outline: none;
 }
@@ -85,11 +83,11 @@ a, .btn-link {
         transform: rotate(-90deg);
     }
 
-    .loading-progress circle:last-child {
-        stroke: #1b6ec2;
-        stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-        transition: stroke-dasharray 0.05s ease-in-out;
-    }
+        .loading-progress circle:last-child {
+            stroke: #1b6ec2;
+            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+            transition: stroke-dasharray 0.05s ease-in-out;
+        }
 
 .loading-progress-text {
     position: absolute;
@@ -110,10 +108,10 @@ code {
 
 /* Image grid and like button appearance styling.*/
 
-    /* Fixed height for the iamge container. */    
-    .image-container {
-        height: 200px; 
-    }
+/* Fixed height for the iamge container. */
+.image-container {
+    height: 200px;
+}
 
     /* Getting proper sizing for image in photo*/
     .image-container img {
@@ -122,35 +120,39 @@ code {
         object-fit: cover;
     }
 
-/* Like & remove Photo CSS.*/
+    /* Like & remove Photo CSS.*/
 
     /* Adjust the button positioning as needed */
     .image-container .like-remove-button {
-        display: none;
         bottom: 1rem;
         right: 1rem;
+        opacity: 0;
     }
 
     /* Displaying button on image hover */
     .image-container:hover .like-remove-button {
-        display: block;
+        opacity: 1;
+        box-shadow: 0rem 0rem 1rem teal;
+        transition: box-shadow 0.3s, opacity 0.3s;
     }
 
-/* Download.*/
+    /* Download.*/
 
     /* Adjust the button positioning as needed */
     .image-container .download-button {
-        display: none;
         bottom: 1rem;
         left: 1rem;
+        opacity: 0;
     }
 
     /* Displaying button on image hover */
     .image-container:hover .download-button {
-        display: block;
+        opacity: 1;
+        box-shadow: 0rem 0rem 1rem teal;
+        transition: box-shadow 0.3s, opacity 0.3s;
     }
 
-/* Star icon */
+    /* Star icon */
 
     .image-container .star-icon {
         color: yellow;
@@ -161,10 +163,10 @@ code {
 
 /* Fixed height for the video container */
 
-    /* Setting size of video player. */
-    .video-container {
-        height: 250px;
-    }
+/* Setting size of video player. */
+.video-container {
+    height: 250px;
+}
 
     /* Getting proper sizing for thumbnail in Video*/
     .video-container video {
@@ -173,21 +175,23 @@ code {
         object-fit: cover;
     }
 
-/* Like & remove Photo CSS.*/
+    /* Like & remove Photo CSS.*/
 
     /* Adjust the button positioning as needed */
     .video-container .like-remove-button {
-        display: none;
         bottom: 12rem;
         left: 1rem;
+        opacity: 0;
     }
 
     /* Displaying button on video hover */
     .video-container:hover .like-remove-button {
-        display: block;
+        opacity: 1;
+        box-shadow: 0rem 0rem 1rem teal;
+        transition: box-shadow 0.3s, opacity 0.3s;
     }
 
-/* Star icon */
+    /* Star icon */
     .video-container .star-icon {
         color: yellow;
         top: 1rem;

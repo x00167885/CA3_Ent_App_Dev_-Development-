@@ -7,7 +7,9 @@
 @inject LikeVideoService LikeVideoService
 @inject IHttpClientFactory _httpClientFactory
 
-<h3 class="text-center">Liked Videos</h3>
+<PageTitle>Liked Videos</PageTitle>
+
+<h2 class="text-center">Liked Videos</h2>
 
 @if (LikeVideoService.LikedVideos.Count != 0)
 {
@@ -31,7 +33,7 @@
 }
 else
 {
-    <h3 class="text-center mt-6">NO VIDEOS ADDED YET</h3>
+    <h2 class="text-center my-5">NO VIDEOS LIKED YET</h2>
 }
 
 @code {
