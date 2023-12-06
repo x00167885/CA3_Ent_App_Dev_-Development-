@@ -3,9 +3,8 @@
 
 @page "/videoLookUp"
 @inject PexelsClient pexelsClient
-@inject LikePhotoService LikePhotoService
 @inject LikeVideoService LikeVideoService
-@inject StoredVideoService StoredVideoService
+@inject StoredVideosService StoredVideosService
 @inject IJSRuntime JSRuntime
 
 <PageTitle>Picture Lookup</PageTitle>
@@ -33,11 +32,11 @@
 {
     if (searched)
     {
-        <h1 class="text-center">You searched for: @searchQuery</h1>
+        <h2 class="text-center">You searched for: @searchQuery</h2>
     }
     else
     {
-        <h1 class="text-center">Showing Weather Videos:</h1>
+        <h2 class="text-center">Showing Weather Videos:</h2>
     }
 
     <Container>
@@ -62,14 +61,14 @@
 
     private List<Video>? videos;
     private string searchQuery = string.Empty;
-    private int videoCount = 6;
+    private int videoCount = 3;
     private bool searched;
 
 
     // Called once component is loaded for demo data to display.
     protected override async Task OnInitializedAsync()
     {
-        if (StoredVideoService.VideosStored.Count == 0)
+        if (StoredVideosService.VideosStored.Count == 0)
         {
             await WriteToConsole("Getting new images");
             // Generating a random page number to simluate randomness.
@@ -77,20 +76,20 @@
             int RandomPageNumber = random.Next(0, 20);
 
             // Making request for videos.
-            var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: 6);
+            var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: 3);
             videos = result.videos.ToList();
 
             // Storing those videos to cut down on requests made.
             foreach (var video in videos)
             {
-                StoredVideoService.AddVideo(video);
+                StoredVideosService.AddVideo(video);
             }
         }
         else
         {
             await WriteToConsole("Pictures already recieved. Displaying already stored images.");
             // If we already have videos requested, then we just load the ones we've already requested.
-            videos = StoredVideoService.VideosStored;
+            videos = StoredVideosService.VideosStored;
         }
     }
 
@@ -123,20 +122,20 @@
             }
 
             // Storing those requested images.
-            StoredVideoService.VideosStored = videos;
+            StoredVideosService.VideosStored = videos;
         }
         else // If nothing is entered by the user. and we have stored videos, display them instead.
         {
             searched = false;
 
-            if (StoredVideoService.VideosStored.Count == 0)
+            if (StoredVideosService.VideosStored.Count == 0)
             {
                 var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: videoCount);
                 videos = result.videos.ToList();
             }
             else
             {
-                videos = StoredVideoService.VideosStored;
+                videos = StoredVideosService.VideosStored;
             }
         }
     }

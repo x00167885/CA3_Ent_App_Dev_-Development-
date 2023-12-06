@@ -4,7 +4,7 @@
 @page "/likedPhotos"
 @inject PexelsClient pexelsClient
 @inject LikePhotoService LikePhotoService
-@inject IHttpClientFactory _httpClientFactory 
+@inject IHttpClientFactory _httpClientFactory
 @inject IJSRuntime JS  /* Using Javascript */
 
 <h3 class="text-center">Liked Photos</h3>
@@ -43,8 +43,7 @@ else
 
     private async Task DownloadPhoto(string imgUrl, string fileName)
     {
-        var request = new HttpRequestMessage(HttpMethod.Get, imgUrl
-        );
+        var request = new HttpRequestMessage(HttpMethod.Get, imgUrl);
         var httpClient = _httpClientFactory.CreateClient();
         var response = await httpClient.SendAsync(request);
         var imgStream = await response.Content.ReadAsStreamAsync();

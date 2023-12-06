@@ -3,7 +3,7 @@ using PexelsDotNetSDK.Models;
 
 namespace CA3_X00167885;
 
-public class StoredVideoService
+public class StoredVideosService
 {
     public List<Video> VideosStored { get; set; } = [];
     public void AddVideo(Video video)

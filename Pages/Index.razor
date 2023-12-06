@@ -1,0 +1,10 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+
+@code {
+    // Redirecting to the proper main page of the website. (Fixes NavBar highlighting on link select.)
+    protected override async Task OnInitializedAsync()
+    {
+        NavigationManager.NavigateTo("/pictureLookup");
+    }
+}

@@ -1,7 +1,7 @@
 ﻿@using PexelsDotNetSDK.Api
 @using PexelsDotNetSDK.Models
 
-@page "/"
+@page "/pictureLookup"
 @inject PexelsClient pexelsClient
 @inject LikePhotoService LikePhotoService
 
@@ -61,7 +61,11 @@
     // Called once component is loaded for demo data to display.
     protected override async Task OnInitializedAsync()
     {
-        var result = await pexelsClient.SearchPhotosAsync("weather", page: 1, pageSize: 6);
+        // Generating a random page number to simluate randomness.
+        Random random = new();
+        int RandomPageNumber = random.Next(1, 11);
+
+        var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
         photos = result.photos;
     }
 
@@ -82,16 +86,16 @@
             var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: RandomPageNumber, pageSize: imageCount); // Negative numbers and 0 handled by the API. Returns 1 image.
             photos = result.photos;
 
-            if (photos.Count == 0) // Saying if we retrieve no videos, well then just get the first page with 6 images.
+            if (photos.Count == 0) // Saying if we retrieve no videos, well then just get the first page worth of images.
             {
-                var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: 6); // Negative numbers and 0 handled by the API. Returns 1 image.
+                var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: imageCount); // Negative numbers and 0 handled by the API. Returns 1 image.
                 photos = resultfail.photos.ToList();
             }
         }
         else
         {
             searched = false;
-            var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
+            var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: imageCount);
             photos = result.photos;
         }
     }

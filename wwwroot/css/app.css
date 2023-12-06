@@ -1,6 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: 'Montserrat', sans-serif;
 }
+
+
 
 h1:focus {
     outline: none;
@@ -81,11 +85,11 @@ a, .btn-link {
         transform: rotate(-90deg);
     }
 
-        .loading-progress circle:last-child {
-            stroke: #1b6ec2;
-            stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
-            transition: stroke-dasharray 0.05s ease-in-out;
-        }
+    .loading-progress circle:last-child {
+        stroke: #1b6ec2;
+        stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
+        transition: stroke-dasharray 0.05s ease-in-out;
+    }
 
 .loading-progress-text {
     position: absolute;
@@ -118,7 +122,7 @@ code {
         object-fit: cover;
     }
 
-    /* Like & remove Photo CSS.*/
+/* Like & remove Photo CSS.*/
 
     /* Adjust the button positioning as needed */
     .image-container .like-remove-button {
@@ -132,7 +136,7 @@ code {
         display: block;
     }
 
-    /* Download.*/
+/* Download.*/
 
     /* Adjust the button positioning as needed */
     .image-container .download-button {
@@ -146,7 +150,8 @@ code {
         display: block;
     }
 
-    /* Adding star icon */
+/* Star icon */
+
     .image-container .star-icon {
         color: yellow;
         top: 1rem;
@@ -154,18 +159,21 @@ code {
         font-size: 1.5rem;
     }
 
-    /* Fixed height for the video container */
+/* Fixed height for the video container */
 
-    /* Getting proper sizing for thumbnail in Video*/
+    /* Setting size of video player. */
     .video-container {
         height: 250px;
     }
 
+    /* Getting proper sizing for thumbnail in Video*/
     .video-container video {
         height: 100%;
         width: 100%;
         object-fit: cover;
     }
+
+/* Like & remove Photo CSS.*/
 
     /* Adjust the button positioning as needed */
     .video-container .like-remove-button {
@@ -179,9 +187,7 @@ code {
         display: block;
     }
 
-    /* Download.*/
-
-    /* Adding star icon */
+/* Star icon */
     .video-container .star-icon {
         color: yellow;
         top: 1rem;

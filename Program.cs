@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
-/* Chosen API Import (Pexels)*/
+/* Chosen API Import (Pexels) */
 using PexelsDotNetSDK.Api;
 
 /*Blazorise Imports*/
@@ -19,7 +19,7 @@ namespace CA3_X00167885
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) }) ;
             ///////////////////////////////////////////////////////////////////
 
             // Adding the PexelsClient to the service collection for accessing throughout application.
@@ -31,8 +31,8 @@ namespace CA3_X00167885
             // Adding my 'Like Video' service as a singleton.
             builder.Services.AddSingleton<LikeVideoService>();
 
-            // Adding my 'Like Video' service as a singleton.
-            builder.Services.AddSingleton<StoredVideoService>();
+            // Adding my 'Store Videos' service as a singleton.
+            builder.Services.AddSingleton<StoredVideosService>();
 
             // Getting Blazorrise Components Ready.
             builder.Services.AddBlazorise(options =>{options.Immediate = true;}).AddBootstrapProviders().AddFontAwesomeIcons();
