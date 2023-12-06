@@ -1,0 +1,106 @@
+﻿@using PexelsDotNetSDK.Api
+@using PexelsDotNetSDK.Models
+
+@page "/"
+@inject PexelsClient pexelsClient
+@inject LikePhotoService LikePhotoService
+
+<PageTitle>Picture Lookup</PageTitle>
+
+<Container>
+    <Row>
+        <!-- Search input column -->
+        <Column Size="ColumnSize.Is6" Class="d-flex flex-column justify-content-center">
+            <div class="input-group">
+                <InputText Placeholder="Search Image..." @bind-Value="searchQuery" class="form-control" />
+                <Button Class="btn btn-primary" Clicked="SearchPhotos">Search</Button>
+            </div>
+        </Column>
+        <!-- Slider column -->
+        <Column Size="ColumnSize.Is6">
+            <div class="d-flex flex-column align-items-center">
+                <Paragraph Class="mb-0"> Image Amount: @imageCount</Paragraph>
+                    <Slider @bind-Value="@imageCount" Min="1" Max="80" Step="1" />
+                </div>
+            </Column>
+        </Row>
+    </Container>
+
+    @if (photos != null)
+{
+    if (searched)
+    {
+        <h1 class="text-center">You searched for: @searchQuery</h1>
+    }
+    else
+    {
+        <h1 class="text-center">Showing Weather Images:</h1>
+    }
+
+    <Container>
+        <Row>
+            @foreach (var photo in photos)
+            {
+                <Column Class="col-12 col-md-4 mb-4">
+                    <div class="image-container position-relative">
+                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" />
+                        <Button Color="Color.Primary" Class="like-remove-button position-absolute" Clicked="@(() => LikePhoto(photo))">Like</Button>
+                    </div>
+                </Column>
+            }
+        </Row>
+    </Container>
+}
+
+@code {
+    private List<Photo>? photos;
+    private string searchQuery = string.Empty;
+    private int imageCount = 6;
+    private bool searched;
+
+    // Called once component is loaded for demo data to display.
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await pexelsClient.SearchPhotosAsync("weather", page: 1, pageSize: 6);
+        photos = result.photos;
+    }
+
+    // Function for searching images on Pexels.
+    private async Task SearchPhotos()
+    {
+        // Clearing the list to prevent caching issue.
+        photos?.Clear();
+        StateHasChanged();
+
+        // Generating a random page number to simluate randomness.
+        Random random = new();
+        int RandomPageNumber = random.Next(1, 11);
+
+        if (searchQuery != "")
+        {
+            searched = true;
+            var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: RandomPageNumber, pageSize: imageCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+            photos = result.photos;
+
+            if (photos.Count == 0) // Saying if we retrieve no videos, well then just get the first page with 6 images.
+            {
+                var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: 6); // Negative numbers and 0 handled by the API. Returns 1 image.
+                photos = resultfail.photos.ToList();
+            }
+        }
+        else
+        {
+            searched = false;
+            var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
+            photos = result.photos;
+        }
+    }
+
+    private async Task LikePhoto(Photo photo)
+    {
+        if (!LikePhotoService.LikedPhotos.Contains(photo))
+        {
+            await Task.Run(() => LikePhotoService.AddLikedPhoto(photo));
+        }
+    }
+}

@@ -1,0 +1,54 @@
+﻿@using PexelsDotNetSDK.Api
+@using PexelsDotNetSDK.Models
+
+@page "/likedPhotos"
+@inject PexelsClient pexelsClient
+@inject LikePhotoService LikePhotoService
+@inject IHttpClientFactory _httpClientFactory 
+@inject IJSRuntime JS  /* Using Javascript */
+
+<h3 class="text-center">Liked Photos</h3>
+
+@if (LikePhotoService.LikedPhotos.Count != 0)
+{
+    <Container>
+        <Row>
+            @foreach (var photo in LikePhotoService.LikedPhotos)
+            {
+                <Column Class="col-12 col-md-4 mb-4">
+                    <div class="image-container position-relative">
+                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" />
+                        <i class="bi bi-star-fill star-icon position-absolute"></i>
+                        <Button Class="btn btn-danger like-remove-button position-absolute" Clicked="@(() => RemovePhoto(photo))">Remove</Button>
+                        <Button Class="btn btn-success download-button position-absolute" Clicked="@(() => DownloadPhoto(photo.source.original, photo.alt + ".jpg"))">Download</Button>
+                    </div>
+                </Column>
+            }
+        </Row>
+    </Container>
+}
+else
+{
+    <h3 class="text-center mt-6">NO PHOTOS ADDED YET</h3>
+}
+
+@code {
+    private async Task RemovePhoto(Photo photo)
+    {
+        if (LikePhotoService.LikedPhotos.Contains(photo))
+        {
+            await Task.Run(() => LikePhotoService.RemoveLikedPhoto(photo));
+        }
+    }
+
+    private async Task DownloadPhoto(string imgUrl, string fileName)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, imgUrl
+        );
+        var httpClient = _httpClientFactory.CreateClient();
+        var response = await httpClient.SendAsync(request);
+        var imgStream = await response.Content.ReadAsStreamAsync();
+        using var streamRef = new DotNetStreamReference(stream: imgStream);
+        await JS.InvokeVoidAsync("downloadFileFromStream", fileName, streamRef);
+    }
+}

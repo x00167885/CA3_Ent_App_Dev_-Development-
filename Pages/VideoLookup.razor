@@ -1,0 +1,157 @@
+﻿@using PexelsDotNetSDK.Api
+@using PexelsDotNetSDK.Models
+
+@page "/videoLookUp"
+@inject PexelsClient pexelsClient
+@inject LikePhotoService LikePhotoService
+@inject LikeVideoService LikeVideoService
+@inject StoredVideoService StoredVideoService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Picture Lookup</PageTitle>
+
+<Container>
+    <Row>
+        <!-- Search input column -->
+        <Column Size="ColumnSize.Is6" Class="d-flex flex-column justify-content-center">
+            <div class="input-group">
+                <InputText Placeholder="Search Image..." @bind-Value="searchQuery" class="form-control" />
+                <Button Class="btn btn-primary" Clicked="SearchVideos">Search</Button>
+            </div>
+        </Column>
+        <!-- Slider column -->
+        <Column Size="ColumnSize.Is6">
+            <div class="d-flex flex-column align-items-center">
+                <Paragraph Class="mb-0"> Video Amount: @videoCount</Paragraph>
+                    <Slider @bind-Value="@videoCount" Min="1" Max="12" Step="1" />
+                </div>
+            </Column>
+        </Row>
+    </Container>
+
+    @if (videos != null)
+{
+    if (searched)
+    {
+        <h1 class="text-center">You searched for: @searchQuery</h1>
+    }
+    else
+    {
+        <h1 class="text-center">Showing Weather Videos:</h1>
+    }
+
+    <Container>
+        <Row>
+            @foreach (var video in videos)
+            {
+                <Column Class="col-12 col-md-4 mb-4">
+                    <div class="video-container position-relative">
+                        <video controls>
+                            <source src="@video.videoFiles.First(videofile => videofile.quality == "sd" || videofile.quality == "hd").link" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <Button Color="Color.Primary" Class="like-remove-button position-absolute" Clicked="@(() => LikeVideo(video))">Like</Button>
+                    </div>
+                </Column>
+            }
+        </Row>
+    </Container>
+}
+
+@code {
+
+    private List<Video>? videos;
+    private string searchQuery = string.Empty;
+    private int videoCount = 6;
+    private bool searched;
+
+
+    // Called once component is loaded for demo data to display.
+    protected override async Task OnInitializedAsync()
+    {
+        if (StoredVideoService.VideosStored.Count == 0)
+        {
+            await WriteToConsole("Getting new images");
+            // Generating a random page number to simluate randomness.
+            Random random = new();
+            int RandomPageNumber = random.Next(0, 20);
+
+            // Making request for videos.
+            var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: 6);
+            videos = result.videos.ToList();
+
+            // Storing those videos to cut down on requests made.
+            foreach (var video in videos)
+            {
+                StoredVideoService.AddVideo(video);
+            }
+        }
+        else
+        {
+            await WriteToConsole("Pictures already recieved. Displaying already stored images.");
+            // If we already have videos requested, then we just load the ones we've already requested.
+            videos = StoredVideoService.VideosStored;
+        }
+    }
+
+    // Function for searching images on Pexels.
+    public async Task SearchVideos()
+    {
+        // Clearing the list to prevent caching issue.
+        videos?.Clear();
+        StateHasChanged();
+
+        // Generating Random Page number. (Simulating random images)
+        Random random = new();
+        int RandomPageNumber = random.Next(0, 20);
+
+        // If the user enters something, make the request.
+        if (searchQuery != string.Empty)
+        {
+            await WriteToConsole("User searched something.");
+
+            searched = true;
+
+            var result = await pexelsClient.SearchVideosAsync(searchQuery, page: RandomPageNumber, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+            videos = result.videos.ToList();
+
+            // Saying if we retrieve no videos, well then just get the first page with the amount of images the user wants.
+            if (videos.Count == 0)
+            {
+                var resultfail = await pexelsClient.SearchVideosAsync(searchQuery, page: 1, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+                videos = resultfail.videos.ToList();
+            }
+
+            // Storing those requested images.
+            StoredVideoService.VideosStored = videos;
+        }
+        else // If nothing is entered by the user. and we have stored videos, display them instead.
+        {
+            searched = false;
+
+            if (StoredVideoService.VideosStored.Count == 0)
+            {
+                var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: videoCount);
+                videos = result.videos.ToList();
+            }
+            else
+            {
+                videos = StoredVideoService.VideosStored;
+            }
+        }
+    }
+
+    public async Task LikeVideo(Video video)
+    {
+        if (!LikeVideoService.LikedVideos.Contains(video))
+        {
+            await Task.Run(() => LikeVideoService.AddLikedVideo(video));
+        }
+    }
+
+    public async Task WriteToConsole(string message)
+    {
+        await JSRuntime.InvokeVoidAsync("console.log", message);
+    }
+
+}

@@ -1,0 +1,45 @@
+﻿@using PexelsDotNetSDK.Api
+@using PexelsDotNetSDK.Models
+
+@page "/likedVideos"
+@inject PexelsClient pexelsClient
+@inject LikePhotoService LikePhotoService
+@inject LikeVideoService LikeVideoService
+@inject IHttpClientFactory _httpClientFactory
+
+<h3 class="text-center">Liked Videos</h3>
+
+@if (LikeVideoService.LikedVideos.Count != 0)
+{
+    <Container>
+        <Row>
+            @foreach (var video in LikeVideoService.LikedVideos)
+            {
+                <Column Class="col-12 col-md-4 mb-4">
+                    <div class="video-container position-relative">
+                        <video controls>
+                            <source src="@video.videoFiles.First(videofile => videofile.quality == "sd" || videofile.quality == "hd").link" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <i class="bi bi-star-fill star-icon position-absolute"></i>
+                        <Button Class="btn btn-danger like-remove-button position-absolute" Clicked="@(() => RemoveVideo(video))">Remove</Button>
+                    </div>
+                </Column>
+            }
+        </Row>
+    </Container>
+}
+else
+{
+    <h3 class="text-center mt-6">NO VIDEOS ADDED YET</h3>
+}
+
+@code {
+    private async Task RemoveVideo(Video video)
+    {
+        if (LikeVideoService.LikedVideos.Contains(video))
+        {
+            await Task.Run(() => LikeVideoService.RemoveLikedPhoto(video));
+        }
+    }
+}
