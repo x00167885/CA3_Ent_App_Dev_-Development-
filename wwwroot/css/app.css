@@ -198,3 +198,14 @@ code {
         right: 1rem;
         font-size: 1.5rem;
     }
+
+    /*Welcome Button*/
+
+    .welcome-button{
+        opacity: 1;
+    }
+
+    .welcome-button:hover{
+        opacity: 0.5;
+        transition: opacity 0.5s;
+    }
