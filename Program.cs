@@ -28,6 +28,9 @@ namespace CA3_X00167885
             // Adding my 'Like Photo' service as a singleton.
             builder.Services.AddSingleton<LikePhotoService>();
 
+            // Adding my 'Store Photos' service as a singleton.
+            builder.Services.AddSingleton<StoredPhotosService>();
+
             // Adding my 'Like Video' service as a singleton.
             builder.Services.AddSingleton<LikeVideoService>();
 

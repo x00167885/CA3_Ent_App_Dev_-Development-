@@ -58,85 +58,82 @@
 }
 
 @code {
-
     private List<Video>? videos;
     private string searchQuery = string.Empty;
     private int videoCount = 3;
     private bool searched;
 
-
-    // Called once component is loaded for demo data to display.
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync() // On page load, call the api for temporary 'weather' videos.
     {
-        if (StoredVideosService.VideosStored.Count == 0)
+        try
         {
-            await WriteToConsole("Getting new images");
-            // Generating a random page number to simluate randomness.
-            Random random = new();
-            int RandomPageNumber = random.Next(0, 20);
-
-            // Making request for videos.
-            var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: 3);
-            videos = result.videos.ToList();
-
-            // Storing those videos to cut down on requests made.
-            foreach (var video in videos)
+            if (StoredVideosService.VideosStored.Count == 0)
             {
-                StoredVideosService.AddVideo(video);
+                Random random = new();
+                int RandomPageNumber = random.Next(1, 101);
+
+                var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: 3);
+                videos = result.videos.ToList();
+
+                foreach (var video in videos)
+                {
+                    StoredVideosService.AddVideo(video);
+                }
             }
-        }
-        else
+            else
+            {
+                videos = StoredVideosService.VideosStored;
+            }
+        }catch (Exception e)
         {
-            await WriteToConsole("Pictures already recieved. Displaying already stored images.");
-            // If we already have videos requested, then we just load the ones we've already requested.
-            videos = StoredVideosService.VideosStored;
+            Console.WriteLine($"Error Loading videos: {e.Message}");
         }
     }
 
     // Function for searching images on Pexels.
     public async Task SearchVideos()
     {
-        // Clearing the list to prevent caching issue.
-        videos?.Clear();
-        StateHasChanged();
-
-        // Generating Random Page number. (Simulating random images)
-        Random random = new();
-        int RandomPageNumber = random.Next(0, 20);
-
-        // If the user enters something, make the request.
-        if (searchQuery != string.Empty)
+        try
         {
-            await WriteToConsole("User searched something.");
+            videos?.Clear();
+            Random random = new();
+            int RandomPageNumber = random.Next(1, 101);
 
-            searched = true;
-
-            var result = await pexelsClient.SearchVideosAsync(searchQuery, page: RandomPageNumber, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
-            videos = result.videos.ToList();
-
-            // Saying if we retrieve no videos, well then just get the first page with the amount of images the user wants.
-            if (videos.Count == 0)
+            if (searchQuery != string.Empty)
             {
-                var resultfail = await pexelsClient.SearchVideosAsync(searchQuery, page: 1, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
-                videos = resultfail.videos.ToList();
-            }
+                searched = true;
 
-            // Storing those requested images.
-            StoredVideosService.VideosStored = videos;
-        }
-        else // If nothing is entered by the user. and we have stored videos, display them instead.
-        {
-            searched = false;
-
-            if (StoredVideosService.VideosStored.Count == 0)
-            {
-                var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: videoCount);
+                var result = await pexelsClient.SearchVideosAsync(searchQuery, page: RandomPageNumber, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
                 videos = result.videos.ToList();
+
+                if (videos.Count == 0) // Saying if we retrieve no videos, well then just get the first page with the amount of images the user wants.
+                {
+                    var resultfail = await pexelsClient.SearchVideosAsync(searchQuery, page: 1, pageSize: videoCount);
+                    videos = resultfail.videos.ToList();
+                }
+
+                StoredVideosService.VideosStored = videos;
             }
-            else
+            else 
             {
-                videos = StoredVideosService.VideosStored;
+                searched = false;
+
+                if (StoredVideosService.VideosStored.Count == 0)
+                {
+                    var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: videoCount);
+                    videos = result.videos.ToList();
+
+                    // We still need to store those videos to prevent needless requests.
+                    StoredVideosService.VideosStored = videos;
+                }
+                else
+                {
+                    videos = StoredVideosService.VideosStored;
+                }
             }
+        }catch (Exception e)
+        {
+            Console.WriteLine($"Error searching videos: {e.Message}");
         }
     }
 
@@ -147,10 +144,4 @@
             await Task.Run(() => LikeVideoService.AddLikedVideo(video));
         }
     }
-
-    public async Task WriteToConsole(string message)
-    {
-        await JSRuntime.InvokeVoidAsync("console.log", message);
-    }
-
 }

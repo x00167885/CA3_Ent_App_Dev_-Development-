@@ -1,5 +1,4 @@
-﻿using CA3_X00167885.Pages;
-using PexelsDotNetSDK.Models;
+﻿using PexelsDotNetSDK.Models;
 
 namespace CA3_X00167885;
 

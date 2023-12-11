@@ -4,6 +4,7 @@
 @page "/pictureLookup"
 @inject PexelsClient pexelsClient
 @inject LikePhotoService LikePhotoService
+@inject StoredPhotosService StoredPhotosService
 
 <PageTitle>Picture Lookup</PageTitle>
 
@@ -19,8 +20,8 @@
         <!-- Slider column -->
         <Column Size="ColumnSize.Is6">
             <div class="d-flex flex-column align-items-center">
-                <Paragraph Class="mb-0"> Image Amount: @imageCount</Paragraph>
-                    <Slider @bind-Value="@imageCount" Min="1" Max="80" Step="1" />
+                <Paragraph Class="mb-0"> Image Amount: @photoCount</Paragraph>
+                    <Slider @bind-Value="@photoCount" Min="1" Max="80" Step="1" />
                 </div>
             </Column>
         </Row>
@@ -55,48 +56,81 @@
 @code {
     private List<Photo>? photos;
     private string searchQuery = string.Empty;
-    private int imageCount = 6;
+    private int photoCount = 6;
     private bool searched;
 
     // Called once component is loaded for demo data to display.
     protected override async Task OnInitializedAsync()
     {
-        // Generating a random page number to simluate randomness.
-        Random random = new();
-        int RandomPageNumber = random.Next(1, 101);
+        try
+        {
+            if (StoredPhotosService.PhotosStored.Count == 0)
+            {
+                Random random = new();
+                int RandomPageNumber = random.Next(1, 101);
 
-        var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
-        photos = result.photos;
+                var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
+                photos = result.photos.ToList();
+
+                foreach (var photo in photos)
+                {
+                    StoredPhotosService.AddPhoto(photo);
+                }
+            }
+            else
+            {
+                photos = StoredPhotosService.PhotosStored;
+            }
+        }catch (Exception e)
+        {
+            Console.WriteLine($"Error loading photos: {e.Message}");
+        }
     }
 
     // Function for searching images on Pexels.
     private async Task SearchPhotos()
     {
-        // Clearing the list to prevent caching issue.
-        photos?.Clear();
-        StateHasChanged();
-
-        // Generating a random page number to simluate randomness.
-        Random random = new();
-        int RandomPageNumber = random.Next(1, 101);
-
-        if (searchQuery != "")
+        try
         {
-            searched = true;
-            var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: RandomPageNumber, pageSize: imageCount); // Negative numbers and 0 handled by the API. Returns 1 image.
-            photos = result.photos;
+            photos?.Clear();
+            Random random = new();
+            int RandomPageNumber = random.Next(1, 101);
 
-            if (photos.Count == 0) // Saying if we retrieve no videos, well then just get the first page worth of images.
+            if (searchQuery != string.Empty)
             {
-                var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: imageCount); // Negative numbers and 0 handled by the API. Returns 1 image.
-                photos = resultfail.photos.ToList();
+                searched = true;
+                var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: RandomPageNumber, pageSize: photoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+                photos = result.photos.ToList();
+
+                if (photos.Count == 0) // Saying if we retrieve no videos, well then just get the first page worth of images.
+                {
+                    var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: photoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+                    photos = resultfail.photos.ToList();
+                }
+
+                StoredPhotosService.PhotosStored = photos;
+            }
+            else
+            {
+                searched = false;
+
+                if (StoredPhotosService.PhotosStored.Count == 0)
+                {
+                    var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: photoCount);
+                    photos = result.photos.ToList();
+
+                    // We still need to store those photos to prevent needless requests.
+                    StoredPhotosService.PhotosStored = photos;
+                }
+                else
+                {
+                    photos = StoredPhotosService.PhotosStored;
+                }
             }
         }
-        else
+        catch (Exception ex)
         {
-            searched = false;
-            var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: imageCount);
-            photos = result.photos;
+            Console.WriteLine($"Error searching photos: {ex.Message}");
         }
     }
 
