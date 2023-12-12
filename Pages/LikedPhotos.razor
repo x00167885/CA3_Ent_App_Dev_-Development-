@@ -18,8 +18,9 @@
             @foreach (var photo in LikePhotoService.LikedPhotos)
             {
                 <Column Class="col-12 col-md-4 mb-4">
+                    <p>Owner: @photo.photographer</p>
                     <div class="image-container position-relative">
-                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" />
+                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" @key=photo />
                         <i class="bi bi-star-fill star-icon position-absolute"></i>
                         <Button Class="btn btn-danger like-remove-button position-absolute" Clicked="@(() => RemovePhoto(photo))">Remove</Button>
                         <Button Class="btn btn-success download-button position-absolute" Clicked="@(() => DownloadPhoto(photo.source.original, photo.alt + ".jpg"))">Download</Button>

@@ -29,7 +29,7 @@
 
     @if (photos != null)
 {
-    if (searched)
+    if (StoredPhotosService.PhotosSearched)
     {
         <h2 class="text-center my-4">You searched for: @searchQuery</h2>
     }
@@ -43,8 +43,9 @@
             @foreach (var photo in photos)
             {
                 <Column Class="col-12 col-md-4 mb-4">
+                    <p>Owner: @photo.photographer</p>
                     <div class="image-container position-relative">
-                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" />
+                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" @key=photo />
                         <Button Color="Color.Primary" Class="like-remove-button position-absolute" Clicked="@(() => LikePhoto(photo))">Like</Button>
                     </div>
                 </Column>
@@ -55,7 +56,7 @@
 
 @code {
     private List<Photo>? photos;
-    private string searchQuery = string.Empty;
+    private string? searchQuery;
     private int photoCount = 6;
     private bool searched;
 
@@ -72,16 +73,16 @@
                 var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
                 photos = result.photos.ToList();
 
-                foreach (var photo in photos)
-                {
-                    StoredPhotosService.AddPhoto(photo);
-                }
+                StoredPhotosService.PhotosStored = photos;
             }
             else
             {
+                // Tracking photos searched when navigating pages.
                 photos = StoredPhotosService.PhotosStored;
+                searchQuery = StoredPhotosService.PhotoSearchTerm;
             }
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             Console.WriteLine($"Error loading photos: {e.Message}");
         }
@@ -98,21 +99,27 @@
 
             if (searchQuery != string.Empty)
             {
-                searched = true;
+                // Tracking that the user has searched, and what they searched for.
+                StoredPhotosService.PhotosSearched = true;
+                StoredPhotosService.PhotoSearchTerm = searchQuery;
+
                 var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: RandomPageNumber, pageSize: photoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
                 photos = result.photos.ToList();
 
-                if (photos.Count == 0) // Saying if we retrieve no videos, well then just get the first page worth of images.
+                if (photos.Count == 0) // Saying if we retrieve no photos, well then just get the first page worth of images.
                 {
                     var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: photoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
                     photos = resultfail.photos.ToList();
                 }
 
+                // We still need to store those photos to prevent needless requests.
                 StoredPhotosService.PhotosStored = photos;
             }
             else
             {
-                searched = false;
+                // Stop tracking, user did not search for anything.
+                StoredPhotosService.PhotosSearched = false;
+                StoredPhotosService.PhotoSearchTerm = string.Empty;
 
                 if (StoredPhotosService.PhotosStored.Count == 0)
                 {

@@ -18,8 +18,9 @@
             @foreach (var video in LikeVideoService.LikedVideos)
             {
                 <Column Class="col-12 col-md-4 mb-4">
+                    <p>Owner: @video.user.name</p>
                     <div class="video-container position-relative">
-                        <video controls>
+                        <video controls preload="metadata" @key=video>
                             <source src="@video.videoFiles.First(videofile => videofile.quality == "sd" || videofile.quality == "hd").link" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>

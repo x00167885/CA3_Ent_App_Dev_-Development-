@@ -4,6 +4,8 @@ namespace CA3_X00167885;
 
 public class StoredVideosService
 {
+    public bool VideosSearched { get; set; }
+    public string? VideoSearchTerm { get; set; }
     public List<Video> VideosStored { get; set; } = [];
     public void AddVideo(Video video)
     {

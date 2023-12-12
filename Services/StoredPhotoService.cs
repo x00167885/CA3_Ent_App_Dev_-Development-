@@ -4,6 +4,8 @@ namespace CA3_X00167885;
 
 public class StoredPhotosService
 {
+    public bool PhotosSearched { get; set; }
+    public string? PhotoSearchTerm { get; set; }
     public List<Photo> PhotosStored { get; set; } = [];
     public void AddPhoto(Photo photo)
     {

@@ -22,7 +22,7 @@
         <Column Size="ColumnSize.Is6">
             <div class="d-flex flex-column align-items-center">
                 <Paragraph Class="mb-0"> Video Amount: @videoCount</Paragraph>
-                    <Slider @bind-Value="@videoCount" Min="1" Max="12" Step="1" />
+                    <Slider @bind-Value="@videoCount" Min="1" Max="6" Step="1" />
                 </div>
             </Column>
         </Row>
@@ -30,7 +30,7 @@
 
     @if (videos != null)
 {
-    if (searched)
+    if (StoredVideosService.VideosSearched)
     {
         <h2 class="text-center my-5">You searched for: @searchQuery</h2>
     }
@@ -44,8 +44,9 @@
             @foreach (var video in videos)
             {
                 <Column Class="col-12 col-md-4 mb-4">
+                    <p>Owner: @video.user.name</p>
                     <div class="video-container position-relative">
-                        <video controls>
+                        <video controls preload="metadata" @key=video>
                             <source src="@video.videoFiles.First(videofile => videofile.quality == "sd" || videofile.quality == "hd").link" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
@@ -57,11 +58,14 @@
     </Container>
 }
 
+
+
+
 @code {
     private List<Video>? videos;
-    private string searchQuery = string.Empty;
+    private string? searchQuery;
     private int videoCount = 3;
-    private bool searched;
+    private bool tooManyRequests = false;
 
     protected override async Task OnInitializedAsync() // On page load, call the api for temporary 'weather' videos.
     {
@@ -75,22 +79,23 @@
                 var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: 3);
                 videos = result.videos.ToList();
 
-                foreach (var video in videos)
-                {
-                    StoredVideosService.AddVideo(video);
-                }
+                StoredVideosService.VideosStored = videos;
             }
             else
             {
+                // Tracking videos searched when navigating pages.
                 videos = StoredVideosService.VideosStored;
+                searchQuery = StoredVideosService.VideoSearchTerm;
             }
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             Console.WriteLine($"Error Loading videos: {e.Message}");
         }
     }
 
-    // Function for searching images on Pexels.
+
+
     public async Task SearchVideos()
     {
         try
@@ -101,7 +106,9 @@
 
             if (searchQuery != string.Empty)
             {
-                searched = true;
+                // Tracking that the user has searched, and what they searched for.
+                StoredVideosService.VideosSearched = true;
+                StoredVideosService.VideoSearchTerm = searchQuery;
 
                 var result = await pexelsClient.SearchVideosAsync(searchQuery, page: RandomPageNumber, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
                 videos = result.videos.ToList();
@@ -112,11 +119,14 @@
                     videos = resultfail.videos.ToList();
                 }
 
+                // We still need to store those videos to prevent needless requests.
                 StoredVideosService.VideosStored = videos;
             }
-            else 
+            else
             {
-                searched = false;
+                // Stop tracking, user did not search for anything.
+                StoredVideosService.VideosSearched = false;
+                StoredVideosService.VideoSearchTerm = string.Empty;
 
                 if (StoredVideosService.VideosStored.Count == 0)
                 {
@@ -131,7 +141,8 @@
                     videos = StoredVideosService.VideosStored;
                 }
             }
-        }catch (Exception e)
+        }
+        catch (Exception e)
         {
             Console.WriteLine($"Error searching videos: {e.Message}");
         }
