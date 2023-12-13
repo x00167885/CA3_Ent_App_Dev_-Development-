@@ -5,11 +5,10 @@
 @inject PexelsClient pexelsClient
 @inject LikePhotoService LikePhotoService
 @inject LikeVideoService LikeVideoService
-@inject IHttpClientFactory _httpClientFactory
 
 <PageTitle>Liked Videos</PageTitle>
 
-<h2 class="text-center">Liked Videos</h2>
+<h2 class="text-center">Liked Videos (@LikeVideoService.LikedVideos.Count())</h2>
 
 @if (LikeVideoService.LikedVideos.Count != 0)
 {

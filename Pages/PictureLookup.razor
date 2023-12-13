@@ -11,25 +11,38 @@
 <Container>
     <Row>
         <!-- Search input column -->
-        <Column Size="ColumnSize.Is6" Class="d-flex flex-column justify-content-center">
+        <Column Size="ColumnSize.Is4" Class="d-flex flex-column justify-content-center">
             <div class="input-group">
-                <InputText Placeholder="Search Image..." @bind-Value="searchQuery" class="form-control" />
+                <InputText Placeholder="Search Images..." @bind-Value="searchQuery" class="form-control" />
                 <Button Class="btn btn-primary" Clicked="SearchPhotos">Search</Button>
             </div>
         </Column>
         <!-- Slider column -->
-        <Column Size="ColumnSize.Is6">
+        <Column Size="ColumnSize.Is4">
             <div class="d-flex flex-column align-items-center">
                 <Paragraph Class="mb-0"> Image Amount: @photoCount</Paragraph>
                     <Slider @bind-Value="@photoCount" Min="1" Max="80" Step="1" />
                 </div>
             </Column>
-        </Row>
-    </Container>
+            <Column Size="ColumnSize.Is4">
+                <div class="d-flex flex-column align-items-center">
+                    @if (StoredPhotosService.PhotoPageNumber == 0)
+                {
+                    <Paragraph Class="mb-0"> Page Number: RANDOM</Paragraph>
+                }
+                else
+                {
+                    <Paragraph Class="mb-0"> Page Number: @StoredPhotosService.PhotoPageNumber</Paragraph>
+                }
+                <NumericPicker @bind-Value="@StoredPhotosService.PhotoPageNumber" ModifyValueOnWheel WheelOn="NumericWheelOn.Hover" Min="0" />
+             </div>
+         </Column>
+     </Row>
+ </Container>
 
-    @if (photos != null)
+ @if (photos != null)
 {
-    if (StoredPhotosService.PhotosSearched)
+    if (StoredPhotosService.PhotosSearched & searchQuery != string.Empty)
     {
         <h2 class="text-center my-4">You searched for: @searchQuery</h2>
     }
@@ -40,13 +53,13 @@
 
     <Container>
         <Row>
-            @foreach (var photo in photos)
+            @foreach (var photo in photos.Select((value, index) => new { value, index }))
             {
                 <Column Class="col-12 col-md-4 mb-4">
-                    <p>Owner: @photo.photographer</p>
+                    <p>@(photo.index + 1) Owner: @photo.value.photographer</p>
                     <div class="image-container position-relative">
-                        <FigureImage Source="@photo.source.medium" Class="img-fluid rounded" @key=photo />
-                        <Button Color="Color.Primary" Class="like-remove-button position-absolute" Clicked="@(() => LikePhoto(photo))">Like</Button>
+                        <FigureImage Source="@photo.value.source.medium" Class="img-fluid rounded" @key=photo />
+                        <Button Color="Color.Primary" Class="like-remove-button position-absolute" Clicked="@(() => LikePhoto(photo.value))">Like</Button>
                     </div>
                 </Column>
             }
@@ -56,21 +69,21 @@
 
 @code {
     private List<Photo>? photos;
-    private string? searchQuery;
+    private string? searchQuery = string.Empty;
     private int photoCount = 6;
-    private bool searched;
 
-    // Called once component is loaded for demo data to display.
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            if (StoredPhotosService.PhotosStored.Count == 0)
+            if (StoredPhotosService.PhotosStored.Count == 0) // On page load, call the api for temporary 'weather' photos.
             {
+                // We generate a random page number, so as so show random images on load.
                 Random random = new();
                 int RandomPageNumber = random.Next(1, 101);
+                StoredPhotosService.PhotoPageNumber = RandomPageNumber;
 
-                var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: 6);
+                var result = await pexelsClient.SearchPhotosAsync("weather", page: StoredPhotosService.PhotoPageNumber, pageSize: photoCount);
                 photos = result.photos.ToList();
 
                 StoredPhotosService.PhotosStored = photos;
@@ -94,8 +107,14 @@
         try
         {
             photos?.Clear();
-            Random random = new();
-            int RandomPageNumber = random.Next(1, 101);
+
+            // Allowing the user the ability to pick a random page number.
+            if (StoredPhotosService.PhotoPageNumber == 0)
+            {
+                Random random = new();
+                int RandomPageNumber = random.Next(1, 101);
+                StoredPhotosService.PhotoPageNumber = RandomPageNumber;
+            }
 
             if (searchQuery != string.Empty)
             {
@@ -103,17 +122,18 @@
                 StoredPhotosService.PhotosSearched = true;
                 StoredPhotosService.PhotoSearchTerm = searchQuery;
 
-                var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: RandomPageNumber, pageSize: photoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+                var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: StoredPhotosService.PhotoPageNumber, pageSize: photoCount); 
                 photos = result.photos.ToList();
 
                 if (photos.Count == 0) // Saying if we retrieve no photos, well then just get the first page worth of images.
                 {
-                    var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: photoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+                    var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: photoCount); 
                     photos = resultfail.photos.ToList();
                 }
 
-                // We still need to store those photos to prevent needless requests.
+                // We still need to store those photos to prevent needless requests. (So load the same images back in a page revisit.)
                 StoredPhotosService.PhotosStored = photos;
+
             }
             else
             {
@@ -123,7 +143,7 @@
 
                 if (StoredPhotosService.PhotosStored.Count == 0)
                 {
-                    var result = await pexelsClient.SearchPhotosAsync("weather", page: RandomPageNumber, pageSize: photoCount);
+                    var result = await pexelsClient.SearchPhotosAsync("weather", page: StoredPhotosService.PhotoPageNumber, pageSize: photoCount);
                     photos = result.photos.ToList();
 
                     // We still need to store those photos to prevent needless requests.

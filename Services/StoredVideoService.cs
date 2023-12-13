@@ -6,6 +6,7 @@ public class StoredVideosService
 {
     public bool VideosSearched { get; set; }
     public string? VideoSearchTerm { get; set; }
+    public int VideoPageNumber { get; set; }
     public List<Video> VideosStored { get; set; } = [];
     public void AddVideo(Video video)
     {
