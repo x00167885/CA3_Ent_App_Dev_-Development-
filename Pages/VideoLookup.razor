@@ -8,6 +8,7 @@
 
 <PageTitle>Video Lookup</PageTitle>
 
+<!-- User options -->
 <Container>
     <Row>
         <!-- Search input column -->
@@ -40,6 +41,7 @@
      </Row>
  </Container>
 
+ <!-- Rendered / Recieved Videos-->
  @if (videos != null)
 {
     if (StoredVideosService.VideosSearched & searchQuery != string.Empty)
@@ -74,26 +76,26 @@
 }
 
 
-
 @code {
     private List<Video>? videos;
     private string? searchQuery = string.Empty;
     private int videoCount = 3;
 
-    protected override async Task OnInitializedAsync() // On page load, call the api for temporary 'weather' videos.
+    protected override async Task OnInitializedAsync()
     {
         try
         {
             if (StoredVideosService.VideosStored.Count == 0)
             {
-                // We generate a random video number, so as so show random videos on load.
+                // We generate a random page number, so as so show random videos on page load.
                 Random random = new();
-                int RandomPageNumber = random.Next(1, 11);
+                int RandomPageNumber = random.Next(1, 101);
                 StoredVideosService.VideoPageNumber = RandomPageNumber;
 
-                var result = await pexelsClient.SearchVideosAsync("weather", page: RandomPageNumber, pageSize: videoCount);
+                var result = await pexelsClient.SearchVideosAsync("weather", page: StoredVideosService.VideoPageNumber, pageSize: videoCount);
                 videos = result.videos.ToList();
 
+                // Storing those videos.
                 StoredVideosService.VideosStored = videos;
             }
             else
@@ -108,7 +110,6 @@
             Console.WriteLine($"Error Loading videos: {e.Message}");
         }
     }
-
 
 
     public async Task SearchVideos()
@@ -131,7 +132,7 @@
                 StoredVideosService.VideosSearched = true;
                 StoredVideosService.VideoSearchTerm = searchQuery;
 
-                var result = await pexelsClient.SearchVideosAsync(searchQuery, page: StoredVideosService.VideoPageNumber, pageSize: videoCount); // Negative numbers and 0 handled by the API. Returns 1 image.
+                var result = await pexelsClient.SearchVideosAsync(searchQuery, page: StoredVideosService.VideoPageNumber, pageSize: videoCount);
                 videos = result.videos.ToList();
 
                 if (videos.Count == 0) // Saying if we retrieve no videos, well then just get the first page with the amount of images the user wants.
@@ -159,6 +160,7 @@
                 }
                 else
                 {
+                    // If we already have weather videos, just load them back in.
                     videos = StoredVideosService.VideosStored;
                 }
             }
@@ -168,6 +170,9 @@
             Console.WriteLine($"Error searching videos: {e.Message}");
         }
     }
+
+
+
 
     public async Task LikeVideo(Video video)
     {

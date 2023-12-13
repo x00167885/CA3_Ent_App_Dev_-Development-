@@ -8,6 +8,7 @@
 
 <PageTitle>Picture Lookup</PageTitle>
 
+<!-- User options -->
 <Container>
     <Row>
         <!-- Search input column -->
@@ -24,6 +25,7 @@
                     <Slider @bind-Value="@photoCount" Min="1" Max="80" Step="1" />
                 </div>
             </Column>
+        <!-- Page Number input column -->
             <Column Size="ColumnSize.Is4">
                 <div class="d-flex flex-column align-items-center">
                     @if (StoredPhotosService.PhotoPageNumber == 0)
@@ -40,6 +42,7 @@
      </Row>
  </Container>
 
+ <!-- Rendered / Recieved Images-->
  @if (photos != null)
 {
     if (StoredPhotosService.PhotosSearched & searchQuery != string.Empty)
@@ -76,7 +79,7 @@
     {
         try
         {
-            if (StoredPhotosService.PhotosStored.Count == 0) // On page load, call the api for temporary 'weather' photos.
+            if (StoredPhotosService.PhotosStored.Count == 0)
             {
                 // We generate a random page number, so as so show random images on load.
                 Random random = new();
@@ -86,6 +89,7 @@
                 var result = await pexelsClient.SearchPhotosAsync("weather", page: StoredPhotosService.PhotoPageNumber, pageSize: photoCount);
                 photos = result.photos.ToList();
 
+                // Storing those photos
                 StoredPhotosService.PhotosStored = photos;
             }
             else
@@ -101,7 +105,7 @@
         }
     }
 
-    // Function for searching images on Pexels.
+
     private async Task SearchPhotos()
     {
         try
@@ -118,26 +122,26 @@
 
             if (searchQuery != string.Empty)
             {
-                // Tracking that the user has searched, and what they searched for.
+                // Tracking that the user has searched, and what they searched for. (So to show again, on page revisit)
                 StoredPhotosService.PhotosSearched = true;
                 StoredPhotosService.PhotoSearchTerm = searchQuery;
 
                 var result = await pexelsClient.SearchPhotosAsync(searchQuery, page: StoredPhotosService.PhotoPageNumber, pageSize: photoCount); 
                 photos = result.photos.ToList();
 
-                if (photos.Count == 0) // Saying if we retrieve no photos, well then just get the first page worth of images.
+                // Saying if we retrieve no photos for that page, just get the first page worth of images.
+                if (photos.Count == 0) 
                 {
                     var resultfail = await pexelsClient.SearchPhotosAsync(searchQuery, page: 1, pageSize: photoCount); 
                     photos = resultfail.photos.ToList();
                 }
 
-                // We still need to store those photos to prevent needless requests. (So load the same images back in a page revisit.)
+                // We still need to store those photos to prevent needless requests. (So to show them again, on page revisit)
                 StoredPhotosService.PhotosStored = photos;
-
             }
             else
             {
-                // Stop tracking, user did not search for anything.
+                // Stop tracking, user did not search for anything. (Revert back to showing weather images)
                 StoredPhotosService.PhotosSearched = false;
                 StoredPhotosService.PhotoSearchTerm = string.Empty;
 
@@ -151,6 +155,7 @@
                 }
                 else
                 {
+                    // If we already have weather images, just load them back in.
                     photos = StoredPhotosService.PhotosStored;
                 }
             }
@@ -160,6 +165,9 @@
             Console.WriteLine($"Error searching photos: {ex.Message}");
         }
     }
+
+
+
 
     private async Task LikePhoto(Photo photo)
     {
